@@ -5,6 +5,8 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_s3 as s3,
     aws_sns as sns,
+    aws_logs as logs,
+
 )
 from constructs import Construct
 from aws_cdk import aws_lambda as _lambda
@@ -14,10 +16,8 @@ import aws_cdk.aws_iam as iam
 import aws_cdk.aws_sns as sns
 import aws_cdk.aws_s3 as s3
 
-
-# get vpc stack
-from lambda_layers.ec2 import VpcStack
 from aws_cdk import CfnOutput
+from aws_cdk import aws_cloudtrail
 # from lambda_layers.stage import Stage
 
 class LambdaLayersStack(Stack):
@@ -148,57 +148,108 @@ class LambdaLayersStack(Stack):
                 assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
                 managed_policies=[
                     iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
-                    iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEC2FullAccess"),
-                    iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSNSFullAccess"),
-                    iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEventBridgeFullAccess"),
-                    iam.ManagedPolicy.from_aws_managed_policy_name("CloudWatchFullAccess"),
-                    iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"),
                     iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess"),
                     ],
                 role_name="LambdaS3Role"
             )
         )
 
-                ## cloudwatch event rule
-        ## create an cloudwatch event rule to trigger lambda function
+        # # create a couldtrail trail to capture s3 bucket creation event
+        s3_trail = s3.Bucket(
+            self,
+            "s3trailforbucketcreation",
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+            versioned=True,
+            encryption=s3.BucketEncryption.S3_MANAGED,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            event_bridge_enabled=True,
+        )
+
+        # # create cloudtrail trail
+
+        log_group = logs.LogGroup(
+            self,
+            "loggroup",
+            log_group_name="loggroup-s3trail",
+            removal_policy=RemovalPolicy.DESTROY,
+            retention=logs.RetentionDays.ONE_DAY,
+        )
+
+        # # create cloudtrail trail
+        cloudtrail_trail = aws_cloudtrail.Trail(
+            self,
+            "cloudtrailtrailforbucketcreation",
+            bucket=s3_trail,
+            is_multi_region_trail=True,
+            include_global_service_events=True,
+            send_to_cloud_watch_logs=True,
+            enable_file_validation=True,
+            trail_name="cloudtrailtrail",
+            # management_events=aws_cloudtrail.ReadWriteType.ALL,
+            cloud_watch_logs_retention=logs.RetentionDays.ONE_DAY,
+            cloud_watch_log_group=log_group,
+            # Specify data events
+        )
+        # Adds an event selector to the bucket foo
+        cloudtrail_trail.add_s3_event_selector(
+            include_management_events=True,
+            s3_selector=[aws_cloudtrail.S3EventSelector(bucket=s3_trail, object_prefix="")],
+            exclude_management_event_sources=[
+                aws_cloudtrail.ManagementEventSources.KMS,
+                aws_cloudtrail.ManagementEventSources.RDS_DATA_API,
+                ],
+            read_write_type=aws_cloudtrail.ReadWriteType.ALL,
+        )
+
+
+
+
+        # # cloudwatch event rule
+        # # create an cloudwatch event rule, trigger the rule when s3 bucket is created in us-east-1 region. And trigger lambda function
         rule = events.Rule(
             self, 
             "s3deleteRule",
             description="Rule to trigger lambda function",
             enabled=True,
+            event_bus=None,
+            cross_stack_scope=None,
             event_pattern=events.EventPattern(
                 source=["aws.s3"],
                 detail_type=["AWS API Call via CloudTrail"],
                 detail={
                     "eventSource": ["s3.amazonaws.com"],
-                    "eventName": ["CreateBucket"]
+                    "eventName": ["CreateBucket"],
+                    # get event if the bucket is created in us-east-1 region
+                    # "requestParameters": {
+                    #     "bucketRegion": ["us-east-1"]
+                    # },
                 }
             ),
-            # targets=[events.LambdaFunction(lambda_ec2)],
-            rule_name="RuleToTriggerLambdaFunctionWhenS3BucketCreated",
+            rule_name="RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
         )
-
-        # # create sample event for AWS API Call via CloudTrail
-
-                # # add target to the rule
         rule.add_target(targets.LambdaFunction(s3_lambda))
+        
+        ## create an eventbus to trigger event rule in eu-central-1 region
+        # bus = events.EventBus(self, "bus",
+        #                       event_bus_name="bus-cdk",
+        #                     #   event_source_name="event-source",
+        #                       )
+        # rule.add_target(targets.EventBus(bus))
 
         # # invoke lambda function
         s3_lambda.add_permission(
             "InvokePermission",
             principal=iam.ServicePrincipal("events.amazonaws.com"),
-            action="lambda:InvokeFunction",
-            source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreated",
+            action="*",
+            source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
         )
 
-        ## create bucket in us-east-1 region
+        # # output lambda function name
 
-        # s3_bucket = s3.Bucket(
-        #     self,
-        #     "S3Bucket",
-        #     versioned=True,
-        #     encryption=s3.BucketEncryption.S3_MANAGED,
-        #     block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
-        #     removal_policy=RemovalPolicy.DESTROY,
-        #     auto_delete_objects=True,
-        # )
+        lambdaname = CfnOutput(
+            self,
+            "Lambdaname",
+            value=s3_lambda.function_name,
+            description="LambdaS3"
+        )

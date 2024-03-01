@@ -7,6 +7,7 @@ snsclient = boto3.client('sns')
 def lambda_handler(event, context):
     # TODO implement
     ec2_instance=event['detail']['instance-id']
+    print (ec2_instance)
     tag_response = client.describe_tags(
         Filters=[
             {

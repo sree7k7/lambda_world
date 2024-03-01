@@ -6,8 +6,19 @@
 
 
 
+# import boto3
+# s3 = boto3.client('s3')
+# bucket_region = s3.get_bucket_location(Bucket='s3-inventory-report619831221558')['LocationConstraint']
+# bucket_region = bucket_region if bucket_region else 'us-east-1'
+# print("this is bucket region:-", bucket_region)
+
+
+# create multiple buckets in different regions
+
 import boto3
 s3 = boto3.client('s3')
-bucket_region = s3.get_bucket_location(Bucket='s3-inventory-report619831221558')['LocationConstraint']
-bucket_region = bucket_region if bucket_region else 'us-east-1'
-print("this is bucket region:-", bucket_region)
+
+a = 2
+
+for item in range(a):
+    print('this is item', item)

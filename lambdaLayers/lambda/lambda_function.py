@@ -11,56 +11,96 @@ def lambda_handler(event, context):
     
     # bt_region = event['detail']['awsRegion']
     # print(bt_region)
+    bucketName = event['detail']['requestParameters']['bucketName'] 
+    print(bucketName)
 
-    # # list aws s3 buckets
+
+    # list aws s3 buckets
 
     s3_list_response = s3.list_buckets()
 
-    # print(s3_list_response)
-    # print('printed s3 list response-------------------')
+    print(s3_list_response)
+    print('printed s3 list response-------------------')
 
     bucketList = s3_list_response['Buckets']
-    ## print bucket list
-    # print(bucketList)
+    # print bucket list
+    print(bucketList)
+
 
     for bucket in bucketList:
-        print("this is bucket name-----:", bucket['Name'])
         bucket_region = s3.get_bucket_location(
             Bucket=bucket['Name'],
         )
-        print("this is bucket region:-", bucket_region['LocationConstraint'])
+        print(bucket_region)
+        print('printed bucket region-------------------')
+        print(bucket_region['LocationConstraint'])
 
         # if bucket region not equals to eu-central-1, then delete bucket
         if  bucket_region['LocationConstraint'] != 'eu-central-1':
+        # if  bt_region != 'eu-central-1':
 
+            # print ("Event bucket region", bt_region)
             # check if bucket has objects
-            print('Working ON Bucket', bucket['Name'])
+            print('Working ON Bucket', bucket['Name'], "in region", bucket_region['LocationConstraint'])
             # list all objects in the bucket
-            print('IN IF LOOP FOR DELETING BUCKET objects')
+
             object_response = s3.list_objects_v2(Bucket=bucket['Name'])
             print("printing bucket response", object_response, "from bucket", bucket['Name'])
             if 'Contents' in object_response:
                 print('bucket has objects, bucket name', bucket['Name'])
                 # delete all objects in the bucket
                 for object in object_response['Contents']:
+                    print('deleting object', object['Key'], "from bucket", bucket['Name'])
                     s3.delete_object(Bucket=bucket['Name'], Key=object['Key'])
                     print('deleted object', object['Key'], "from bucket", bucket['Name'])
+
+                    # delete bucket when the objects are deleted
+                    print('deleting bucket', bucket['Name'])
+                    s3.delete_bucket(
+                        Bucket=bucket['Name'],
+                    )
+                    print('deleted bucket for empty objects', bucket['Name'])
             else:
                 print('bucket has no objects, bucket name', bucket['Name'])
             # delete bucket
-            print('bucket created in region', bucket_region['LocationConstraint'], "bucket name", bucket['Name'])
-            print('deleting bucket in another region', bucket['Name'])
-            s3.delete_bucket(
-                    Bucket=bucket['Name'],
-                )
-            print('deleted bucket in another region', bucket['Name'])
+                print('bucket created in region', bucket_region['LocationConstraint'], "bucket name", bucket['Name'])
+                print('deleting bucket in another region', bucket['Name'], "bucket region", bucket_region['LocationConstraint'])
+                s3.delete_bucket(
+                        Bucket=bucket['Name'],
+                    )
+                print('deleted bucket in another region', bucket['Name'], "bucket region", bucket_region['LocationConstraint'])
 
         else:
             print('not deleting bucket in eu-central-1', bucket['Name'])
 
+###### -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# # event based lambda function
 
+# def lambda_handler(event, context):
+#     # TODO implement
+#     # bucket_region_event = event['awsRegion']
+#     # print(bucket_region_event)
 
+#     # list aws s3 buckets
+#     s3_list_buckets = s3.list_buckets()
+#     for bucket in s3_list_buckets['Buckets']:
+#         print("Bucket name:", bucket['Name'])
+
+#         # get bucket region
+#         bucket_region = s3.get_bucket_location(
+#             Bucket=bucket['Name'],
+#         )
+
+#         # delete bucket if bucket region not equals to eu-central-1
+#         if  bucket_region['LocationConstraint'] != 'eu-central-1':
+#             print('deleting bucket in another region', bucket['Name'])
+#             s3.delete_bucket(
+#                 Bucket=bucket['Name'],
+#             )
+#             print('deleted bucket in another region', bucket['Name'])
+#         else:
+#             print('not deleting bucket in eu-central-1', bucket['Name'])
 
 
 
