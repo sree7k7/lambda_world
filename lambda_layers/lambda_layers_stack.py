@@ -185,7 +185,7 @@ class LambdaLayersStack(Stack):
             include_global_service_events=True,
             send_to_cloud_watch_logs=True,
             enable_file_validation=True,
-            trail_name="cloudtrailtrail",
+            trail_name="CustomCloudTrail",
             # management_events=aws_cloudtrail.ReadWriteType.ALL,
             cloud_watch_logs_retention=logs.RetentionDays.ONE_DAY,
             cloud_watch_log_group=log_group,
@@ -202,17 +202,23 @@ class LambdaLayersStack(Stack):
             read_write_type=aws_cloudtrail.ReadWriteType.ALL,
         )
 
-
-
+        # # create a eventbus to capture the event from cloudtrail trail created above
+        # bus = events.EventBus(
+        #     self,
+        #     "bus",
+        #     event_bus_name="bus-cdk",
+        # )
 
         # # cloudwatch event rule
-        # # create an cloudwatch event rule, trigger the rule when s3 bucket is created in us-east-1 region. And trigger lambda function
+        # # create an cloudwatch event rule. Trigger the rule when s3 bucket is created in us-east-1 region. And trigger lambda function
+        # # matach the event pattern with the event pattern in the cloudtrail trail created above
+
         rule = events.Rule(
             self, 
             "s3deleteRule",
             description="Rule to trigger lambda function",
             enabled=True,
-            event_bus=None,
+            # event_bus=bus,
             cross_stack_scope=None,
             event_pattern=events.EventPattern(
                 source=["aws.s3"],
