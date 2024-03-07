@@ -30,7 +30,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zPSMzQy0jNQTCwv1k1OydbNyUzSqw4uSUzO1gEKxaeWpeaVFOtVB5XmpOo4p+WB6FowI7U4v7QoGcgJqCzJyM/TN9YzNNQzV8wqzszULSrNK8nMTdULgtAAQ6GB5WQAAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zPSMzQy0jNQTCwv1k1OydbNyUzSqw4uSUzO1gEKxaeWpeaVFOtVB5XmpOo4p+WB6FowI7U4v7QoGcgJqCzJyM/TNwYapGekmFWcmalbVJpXkpmbqhcEoQGr/xb2ZAAAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "EventRuleUsEast1Stack/CDKMetadata/Default"

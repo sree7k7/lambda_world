@@ -145,12 +145,19 @@ class LambdaLayersStack(Stack):
             role=iam.Role(
                 self,
                 "LambdaS3Role",
-                assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
+                # assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
+
+                assumed_by=iam.CompositePrincipal(
+                    iam.ServicePrincipal("lambda.amazonaws.com"),
+                    iam.ServicePrincipal("events.amazonaws.com"),
+                    iam.ServicePrincipal("vpc-flow-logs.amazonaws.com")
+                ),
                 managed_policies=[
                     iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess"),
                     ],
-                role_name="LambdaS3Role"
+                role_name="LambdaS3Role",
+                # source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/bus-cdk",
             )
         )
 
@@ -203,11 +210,11 @@ class LambdaLayersStack(Stack):
         )
 
         # # create a eventbus to capture the event from cloudtrail trail created above
-        # bus = events.EventBus(
-        #     self,
-        #     "bus",
-        #     event_bus_name="bus-cdk",
-        # )
+        bus = events.EventBus(
+            self,
+            "bus",
+            event_bus_name="bus-cdk",
+        )
 
         # # cloudwatch event rule
         # # create an cloudwatch event rule. Trigger the rule when s3 bucket is created in us-east-1 region. And trigger lambda function
@@ -216,9 +223,9 @@ class LambdaLayersStack(Stack):
         rule = events.Rule(
             self, 
             "s3deleteRule",
-            description="Rule to trigger lambda function",
+            description="Rule to trigger lambda fn",
             enabled=True,
-            # event_bus=bus,
+            event_bus=bus,
             cross_stack_scope=None,
             event_pattern=events.EventPattern(
                 source=["aws.s3"],
@@ -244,18 +251,19 @@ class LambdaLayersStack(Stack):
         # rule.add_target(targets.EventBus(bus))
 
         # # invoke lambda function
-        s3_lambda.add_permission(
-            "InvokePermission",
-            principal=iam.ServicePrincipal("events.amazonaws.com"),
-            action="*",
-            source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
-        )
+        # s3_lambda.add_permission(
+        #     "InvokePermission",
+        #     principal=iam.ServicePrincipal("events.amazonaws.com"),
+        #     action="*",
+        #     # source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
+        #     source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/bus-cdk",
+        # )
 
         # # output lambda function name
 
         lambdaname = CfnOutput(
             self,
-            "Lambdaname",
+            "LambdfnName",
             value=s3_lambda.function_name,
             description="LambdaS3"
         )

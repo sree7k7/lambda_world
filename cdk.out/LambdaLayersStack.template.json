@@ -9,7 +9,11 @@
        "Action": "sts:AssumeRole",
        "Effect": "Allow",
        "Principal": {
-        "Service": "lambda.amazonaws.com"
+        "Service": [
+         "events.amazonaws.com",
+         "lambda.amazonaws.com",
+         "vpc-flow-logs.amazonaws.com"
+        ]
        }
       }
      ],
@@ -73,23 +77,6 @@
     "aws:asset:path": "asset.e5e4791ece0caede2b7939149f59a3c28a3c76b2344af6501233ef9b30eb3e0b",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
-   }
-  },
-  "LambdaS3InvokePermissionFB12B681": {
-   "Type": "AWS::Lambda::Permission",
-   "Properties": {
-    "Action": "*",
-    "FunctionName": {
-     "Fn::GetAtt": [
-      "LambdaS365175FCC",
-      "Arn"
-     ]
-    },
-    "Principal": "events.amazonaws.com",
-    "SourceArn": "arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion"
-   },
-   "Metadata": {
-    "aws:cdk:path": "LambdaLayersStack/LambdaS3/InvokePermission"
    }
   },
   "s3trailforbucketcreation26B62A46": {
@@ -538,10 +525,22 @@
     "aws:cdk:path": "LambdaLayersStack/cloudtrailtrailforbucketcreation/Resource"
    }
   },
+  "bus707364D1": {
+   "Type": "AWS::Events::EventBus",
+   "Properties": {
+    "Name": "bus-cdk"
+   },
+   "Metadata": {
+    "aws:cdk:path": "LambdaLayersStack/bus/Resource"
+   }
+  },
   "s3deleteRule3DEB79FC": {
    "Type": "AWS::Events::Rule",
    "Properties": {
-    "Description": "Rule to trigger lambda function",
+    "Description": "Rule to trigger lambda fn",
+    "EventBusName": {
+     "Ref": "bus707364D1"
+    },
     "EventPattern": {
      "detail": {
       "eventSource": [
@@ -601,7 +600,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WQQU/DMAyFf8vurqHdYWc2CS5IVGX3KUtNCU2TKU6Gpij/naQdY5ze9/wc2U6DddPg40p8cyX7sdLqiPHdCzlCLh2iEhPGzmqC3YeZtbVayUuxCyXQYjr2AuNzMNIra0p2zy25STFnl4DXB8FMnvGpSPYYt0GO5LeCCRYsj660yN/Me58n24ExvtrhxdlwKvkvJ5Daht47oTTGfZESz5CAzmTyCrEL18OypgQdsQ1OEsy75V8YlBlgF9jb6ZaV9hv/i1pnz6onN1+S296CPwWfoL34T2se1ljXuFl9sVKVC8aribBb9AeIBSfkhgEAAA=="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WQTU7DMBCFz9L9ZID0BKQCNkhEgX3lOia4cTyVxy6qLN8dOymhrN73/Maanxof6hrvN+KbK9mPldEHjO9eyBHy0z5qMWHsyCjYfdpZWzJaXopdKIER06EXGJ+DlV6TLdktt8pNmjm7BLzdC2blGR+LZI+xCXJUvhGsYMHy6UqL/PW89bkzDYzxlYYXR+FU8l9OIA2F3juhDcaPIiWeIYE6K5tHiE9Fm8AlWrkL122zpgSdYgpOKpgHzqcZtB1gF9jTtGalfOV/UevorHvl5vVy2Vvwp+ATtBf/RfZum++P9ebIWlcuWK8nhd2iP28k6aqbAQAA"
    },
    "Metadata": {
     "aws:cdk:path": "LambdaLayersStack/CDKMetadata/Default"
@@ -609,7 +608,7 @@
   }
  },
  "Outputs": {
-  "Lambdaname": {
+  "LambdfnName": {
    "Description": "LambdaS3",
    "Value": {
     "Ref": "LambdaS365175FCC"
