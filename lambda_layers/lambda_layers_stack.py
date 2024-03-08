@@ -132,12 +132,7 @@ class LambdaLayersStack(Stack):
 
 #### -------------------------------------------------------------------------------------------------------------------------------------------------------------
         # # delete bucket if it's created in us-east-1 region
-        # create lambda funtion to delete bucket if it's created in us-east-1 region
-        ## create an eventbus to trigger event rule in eu-central-1 region
-        # bus = events.EventBus(self, "bus",
-        #                       event_bus_name="default",
-        #                     #   event_source_name="sdx"
-        #                       )
+
         s3_lambda = _lambda.Function(
             self,
             "LambdaS3",
@@ -160,12 +155,6 @@ class LambdaLayersStack(Stack):
                     iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess"),
                     ],
                 role_name="LambdaS3Role",
-            # invoke lambda function add permission for eventbridge rule
-            
-
-
-                
-                # source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/bus-cdk",
             )
         )
 
@@ -246,7 +235,6 @@ class LambdaLayersStack(Stack):
             "InvokePermission",
             principal=iam.ServicePrincipal("events.amazonaws.com"),
             action="lambda:InvokeFunction",
-            # source_arn=bus.event_bus_arn,
             # source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
             source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/default",
         )
@@ -260,15 +248,15 @@ class LambdaLayersStack(Stack):
             description="LambdaS3"
         )
 
-    # # create an s3 bucket in us-east-1 region
-        s3_bucket = s3.Bucket(
-            self,
-            "s3bucket",
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
-            versioned=True,
-            encryption=s3.BucketEncryption.S3_MANAGED,
-            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
-            event_bridge_enabled=True,
-            bucket_name="sran619831221558-1",
-        )
+    # # # create an s3 bucket in us-east-1 region
+    #     s3_bucket = s3.Bucket(
+    #         self,
+    #         "s3bucket",
+    #         removal_policy=RemovalPolicy.DESTROY,
+    #         auto_delete_objects=True,
+    #         versioned=True,
+    #         encryption=s3.BucketEncryption.S3_MANAGED,
+    #         block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+    #         event_bridge_enabled=True,
+    #         bucket_name="sran619831221558-1",
+    #     )

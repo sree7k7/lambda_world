@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::619831221558:role/cdk-hnb659fds-deploy-role-619831221558-eu-central-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::619831221558:role/cdk-hnb659fds-cfn-exec-role-619831221558-eu-central-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-619831221558-eu-central-1/bfb129b14d4ffc6d70a239e71c01ec0d7b0dd7711b7c3f959572ee28d8793ea0.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-619831221558-eu-central-1/71670e2146a16b9ade321242db53e3980699c1172f8af9915ad675bb7a5310ae.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -146,30 +146,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "LambdfnName"
-          }
-        ],
-        "/LambdaLayersStack/s3bucket/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "s3bucketFBFA637E"
-          }
-        ],
-        "/LambdaLayersStack/s3bucket/Policy/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "s3bucketPolicyE79D5D76"
-          }
-        ],
-        "/LambdaLayersStack/s3bucket/AutoDeleteObjectsCustomResource/Default": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "s3bucketAutoDeleteObjectsCustomResource716084AB"
-          }
-        ],
-        "/LambdaLayersStack/s3bucket/Notifications/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "s3bucketNotifications7E3FF01B"
           }
         ],
         "/LambdaLayersStack/CDKMetadata/Default": [

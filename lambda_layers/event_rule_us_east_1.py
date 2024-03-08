@@ -54,3 +54,16 @@ class EventRuleUsEast1Stack(Stack):
             #     "detail": {}
             # })
         ))
+
+# # when bucket is created in us-east-1, send a sns notification to email
+# # create a sns topic
+        topic = sns.Topic(self, "MyTopic",
+            display_name="MyTopic",
+            topic_name="MyTopic"
+        )
+        # create a subscription to the topic
+        topic.add_subscription(sns.Subscription(
+            endpoint="sree7k7@gmail.com",
+            protocol=sns.SubscriptionProtocol.EMAIL,
+            endpoint_auto_confirms=True
+        ))
