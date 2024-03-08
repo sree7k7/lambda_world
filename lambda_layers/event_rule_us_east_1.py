@@ -31,28 +31,26 @@ class EventRuleUsEast1Stack(Stack):
             "s3deleteRule",
             description="Rule to trigger lambda function",
             enabled=True,
-            event_bus=None,
-            cross_stack_scope=None,
             event_pattern=events.EventPattern(
                 source=["aws.s3"],
                 detail_type=["AWS API Call via CloudTrail"],
                 detail={
                     "eventSource": ["s3.amazonaws.com"],
                     "eventName": ["CreateBucket"],
-                    # get event if the bucket is created in us-east-1 region
-                    # "requestParameters": {
-                    #     "bucketRegion": ["us-east-1"]
-                    # },
                 }
             ),
-            rule_name="RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
+            rule_name="RuleToTriggerAnotherEvent",
         )
-
-    # ## create a eventbrige bus to trigger event rule in eu-central-1 region
-    #     bus = events.EventBus(self, "bus",
-    #                           event_bus_name="bus-cdk-us-east-1"
-    #                           )
-    #     rule.add_target(targets.EventBus(bus))
-
-
-                               
+        # This rule sends a custom event to the EventBus in 'eu-central-1' region
+        rule.add_target(targets.EventBus(
+            event_bus=events.EventBus.from_event_bus_arn(
+                self, 
+                "EventBus", 
+                event_bus_arn="arn:aws:events:eu-central-1:619831221558:event-bus/default"
+            ),
+            # input=events.RuleTargetInput.from_object({
+            #     "source": ["custom.source"],
+            #     "detail-type": ["Custom Event"],
+            #     "detail": {}
+            # })
+        ))

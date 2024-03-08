@@ -133,7 +133,11 @@ class LambdaLayersStack(Stack):
 #### -------------------------------------------------------------------------------------------------------------------------------------------------------------
         # # delete bucket if it's created in us-east-1 region
         # create lambda funtion to delete bucket if it's created in us-east-1 region
-
+        ## create an eventbus to trigger event rule in eu-central-1 region
+        # bus = events.EventBus(self, "bus",
+        #                       event_bus_name="default",
+        #                     #   event_source_name="sdx"
+        #                       )
         s3_lambda = _lambda.Function(
             self,
             "LambdaS3",
@@ -150,13 +154,17 @@ class LambdaLayersStack(Stack):
                 assumed_by=iam.CompositePrincipal(
                     iam.ServicePrincipal("lambda.amazonaws.com"),
                     iam.ServicePrincipal("events.amazonaws.com"),
-                    iam.ServicePrincipal("vpc-flow-logs.amazonaws.com")
                 ),
                 managed_policies=[
                     iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
                     iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess"),
                     ],
                 role_name="LambdaS3Role",
+            # invoke lambda function add permission for eventbridge rule
+            
+
+
+                
                 # source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/bus-cdk",
             )
         )
@@ -209,13 +217,6 @@ class LambdaLayersStack(Stack):
             read_write_type=aws_cloudtrail.ReadWriteType.ALL,
         )
 
-        # # create a eventbus to capture the event from cloudtrail trail created above
-        bus = events.EventBus(
-            self,
-            "bus",
-            event_bus_name="bus-cdk",
-        )
-
         # # cloudwatch event rule
         # # create an cloudwatch event rule. Trigger the rule when s3 bucket is created in us-east-1 region. And trigger lambda function
         # # matach the event pattern with the event pattern in the cloudtrail trail created above
@@ -224,40 +225,31 @@ class LambdaLayersStack(Stack):
             self, 
             "s3deleteRule",
             description="Rule to trigger lambda fn",
-            enabled=True,
-            event_bus=bus,
-            cross_stack_scope=None,
+            # event_bus=bus,
             event_pattern=events.EventPattern(
                 source=["aws.s3"],
                 detail_type=["AWS API Call via CloudTrail"],
                 detail={
                     "eventSource": ["s3.amazonaws.com"],
                     "eventName": ["CreateBucket"],
-                    # get event if the bucket is created in us-east-1 region
-                    # "requestParameters": {
-                    #     "bucketRegion": ["us-east-1"]
-                    # },
                 }
             ),
             rule_name="RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
         )
         rule.add_target(targets.LambdaFunction(s3_lambda))
         
-        ## create an eventbus to trigger event rule in eu-central-1 region
-        # bus = events.EventBus(self, "bus",
-        #                       event_bus_name="bus-cdk",
-        #                     #   event_source_name="event-source",
-        #                       )
+
         # rule.add_target(targets.EventBus(bus))
 
         # # invoke lambda function
-        # s3_lambda.add_permission(
-        #     "InvokePermission",
-        #     principal=iam.ServicePrincipal("events.amazonaws.com"),
-        #     action="*",
-        #     # source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
-        #     source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/bus-cdk",
-        # )
+        s3_lambda.add_permission(
+            "InvokePermission",
+            principal=iam.ServicePrincipal("events.amazonaws.com"),
+            action="lambda:InvokeFunction",
+            # source_arn=bus.event_bus_arn,
+            # source_arn="arn:aws:events:eu-central-1:619831221558:rule/RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
+            source_arn="arn:aws:events:eu-central-1:619831221558:event-bus/default",
+        )
 
         # # output lambda function name
 
@@ -266,4 +258,17 @@ class LambdaLayersStack(Stack):
             "LambdfnName",
             value=s3_lambda.function_name,
             description="LambdaS3"
+        )
+
+    # # create an s3 bucket in us-east-1 region
+        s3_bucket = s3.Bucket(
+            self,
+            "s3bucket",
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+            versioned=True,
+            encryption=s3.BucketEncryption.S3_MANAGED,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            event_bridge_enabled=True,
+            bucket_name="sran619831221558-1",
         )

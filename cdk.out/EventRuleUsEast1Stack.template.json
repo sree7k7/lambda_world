@@ -20,17 +20,73 @@
       "aws.s3"
      ]
     },
-    "Name": "RuleToTriggerLambdaFunctionWhenS3BucketCreatedInWrongRegion",
-    "State": "ENABLED"
+    "Name": "RuleToTriggerAnotherEvent",
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": "arn:aws:events:eu-central-1:619831221558:event-bus/default",
+      "Id": "Target0",
+      "RoleArn": {
+       "Fn::GetAtt": [
+        "s3deleteRuleEventsRoleD24A6DE5",
+        "Arn"
+       ]
+      }
+     }
+    ]
    },
    "Metadata": {
     "aws:cdk:path": "EventRuleUsEast1Stack/s3deleteRule/Resource"
    }
   },
+  "s3deleteRuleEventsRoleD24A6DE5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "events.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "EventRuleUsEast1Stack/s3deleteRule/EventsRole/Resource"
+   }
+  },
+  "s3deleteRuleEventsRoleDefaultPolicy2B6D7814": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "events:PutEvents",
+       "Effect": "Allow",
+       "Resource": "arn:aws:events:eu-central-1:619831221558:event-bus/default"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "s3deleteRuleEventsRoleDefaultPolicy2B6D7814",
+    "Roles": [
+     {
+      "Ref": "s3deleteRuleEventsRoleD24A6DE5"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EventRuleUsEast1Stack/s3deleteRule/EventsRole/DefaultPolicy/Resource"
+   }
+  },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zPSMzQy0jNQTCwv1k1OydbNyUzSqw4uSUzO1gEKxaeWpeaVFOtVB5XmpOo4p+WB6FowI7U4v7QoGcgJqCzJyM/TNwYapGekmFWcmalbVJpXkpmbqhcEoQGr/xb2ZAAAAA=="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/y2NUQrDIBBEz5L/dduaI/QCwR6gWLuh2xiFqClBvHsV8/VmHgMj8SYlXgf9C8K8F2H5hfkRtVmgqmemnVwMmFWyBPfZNRZgvVblT9U4ecvmaLWnUkBR8GkzfXPmAtMRP95dxvqLcvgGZrElF3klVJ1/P8SaEJMAAAA="
    },
    "Metadata": {
     "aws:cdk:path": "EventRuleUsEast1Stack/CDKMetadata/Default"
